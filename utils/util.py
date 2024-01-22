@@ -392,31 +392,41 @@ def export(args, weight_path):
     import onnx  # noqa
     import torch  # noqa
     import onnxsim  # noqa
+    from sbi4onnx import initialize
 
     model = torch.load(weight_path)['model'].float().cpu()
     model.eval()
-    image = torch.zeros((1, 3, args.input_size, args.input_size))
 
-    torch.onnx.export(
-        model,
-        image,
-        weight_path.replace('pt', 'onnx'),
-        opset_version=11,
-        input_names=['input'],
-        output_names=['landmarks_xyscore'],
-    )
+    RESOLUTIONS = [
+        [256,256],
+        [224,224],
+        [192,192],
+        [160,160],
+        [128,128],
+    ]
+    for H, W in RESOLUTIONS:
+        image = torch.zeros((1, 3, H, W))
+        file = f'pipnet_1x3x{H}x{W}.onnx'
+        torch.onnx.export(
+            model,
+            image,
+            file,
+            opset_version=11,
+            input_names=['input'],
+            output_names=['landmarks_xyscore'],
+        )
+        # Checks
+        model_onnx = onnx.load(file)  # load onnx model
+        # Simplify
+        try:
+            model_onnx, check = onnxsim.simplify(model_onnx)
+            assert check, 'Simplified ONNX model could not be validated'
+        except Exception as e:
+            print(e)
+        onnx.save(model_onnx, file)
 
-    # Checks
-    model_onnx = onnx.load(weight_path.replace('pt', 'onnx'))  # load onnx model
-
-    # Simplify
-    try:
-        model_onnx, check = onnxsim.simplify(model_onnx)
-        assert check, 'Simplified ONNX model could not be validated'
-    except Exception as e:
-        print(e)
-
-    onnx.save(model_onnx, weight_path.replace('pt', 'onnx'))
+        n_file = f'pipnet_Nx3x{H}x{W}.onnx'
+        initialize(file, None, n_file, 'N')
 
 
 class LandmarkDetector:
