@@ -202,13 +202,13 @@ def main():
     parser.add_argument('--epochs', default=120, type=int)
     parser.add_argument('--train', action='store_true')
     parser.add_argument('--test', action='store_true')
-    parser.add_argument('--demo', default=True, action='store_true')
+    parser.add_argument('--demo', action='store_true')
     parser.add_argument('--export_onnx', action='store_true')
 
     args = parser.parse_args()
 
-    util.setup_seed()
-    util.setup_multi_processes()
+    # util.setup_seed()
+    # util.setup_multi_processes()
 
     with open(os.path.join('utils', 'opt.yaml'), errors='ignore') as f:
         params = yaml.safe_load(f)

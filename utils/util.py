@@ -397,15 +397,14 @@ def export(args, weight_path):
     model.eval()
     image = torch.zeros((1, 3, args.input_size, args.input_size))
 
-    torch.onnx.export(model,
-                      image,
-                      weight_path.replace('pt', 'onnx'),
-                      verbose=False,
-                      opset_version=12,
-                      do_constant_folding=True,
-                      input_names=['inputs'],
-                      output_names=['outputs', 'score'],
-                      dynamic_axes=None)
+    torch.onnx.export(
+        model,
+        image,
+        weight_path.replace('pt', 'onnx'),
+        opset_version=11,
+        input_names=['input'],
+        output_names=['landmarks_xyscore'],
+    )
 
     # Checks
     model_onnx = onnx.load(weight_path.replace('pt', 'onnx'))  # load onnx model

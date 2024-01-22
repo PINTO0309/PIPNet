@@ -1,0 +1,7 @@
+*.onnx
+*.engine
+*.profile
+__pycache__/
+*.zip
+*.tar.gz
+*.mp4
